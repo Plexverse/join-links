@@ -52,43 +52,53 @@ export async function onRequest(context) {
 </head>
 <body>
     <div class="container">
-        <div class="spinner"></div>
-        <p>Opening Lunar Client...</p>
+        <div class="spinner" id="spinner"></div>
+        <p id="message">Opening Lunar Client...</p>
     </div>
 
     <script>
         (function() {
             const lunarClientUrl = ${JSON.stringify(lunarClientUrl)};
+            const spinner = document.getElementById('spinner');
+            const message = document.getElementById('message');
+            
+            // Function to show success message
+            function showSuccess() {
+                spinner.style.display = 'none';
+                message.textContent = 'Opened in Lunar Client, you can close this tab now';
+            }
             
             // Try to open Lunar Client
             window.location.href = lunarClientUrl;
 
             // Fallback: If Lunar Client doesn't open, redirect to download page after a delay
+            // Give users plenty of time to click "Open" in the browser prompt
             let fallbackTriggered = false;
-            const fallbackTimeout = setTimeout(() => {
+            let fallbackTimeout = setTimeout(() => {
                 if (!fallbackTriggered) {
                     fallbackTriggered = true;
                     window.location.href = 'https://www.lunarclient.com/download';
                 }
-            }, 2000);
+            }, 20000); // 20 seconds to allow time for user interaction
 
-            // If the page becomes visible again (user came back), they likely don't have Lunar Client
-            window.addEventListener('focus', () => {
+            // If the page becomes hidden, Lunar Client likely opened successfully
+            // Cancel the fallback timeout and show success message
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden && !fallbackTriggered) {
+                    clearTimeout(fallbackTimeout);
+                    fallbackTriggered = true; // Prevent any further redirects
+                    showSuccess();
+                }
+            });
+
+            // Also listen for blur event (when window loses focus)
+            window.addEventListener('blur', () => {
                 if (!fallbackTriggered) {
                     clearTimeout(fallbackTimeout);
-                    fallbackTriggered = true;
-                    window.location.href = 'https://www.lunarclient.com/download';
+                    fallbackTriggered = true; // Prevent any further redirects
+                    showSuccess();
                 }
             }, { once: true });
-
-            // Also check if we're still on the page after a longer delay
-            setTimeout(() => {
-                if (!fallbackTriggered && document.visibilityState === 'visible') {
-                    clearTimeout(fallbackTimeout);
-                    fallbackTriggered = true;
-                    window.location.href = 'https://www.lunarclient.com/download';
-                }
-            }, 1500);
         })();
     </script>
 </body>
