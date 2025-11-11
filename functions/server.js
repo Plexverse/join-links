@@ -6,6 +6,7 @@ export async function onRequest(context) {
   const url = new URL(request.url);
   const serverId = url.searchParams.get('id');
   const isDev = url.searchParams.has('dev');
+  const isBedrock = url.searchParams.has('bedrock');
 
   if (!serverId) {
     return Response.redirect('https://www.lunarclient.com/download', 302);
@@ -15,9 +16,17 @@ export async function onRequest(context) {
   const serverAddress = isDev 
     ? `${serverId}.dev.mineplex.com`
     : `server-${serverId}.plexverse.net`;
-  const lunarClientUrl = isDev
-    ? `lunarclient://play?serverAddress=${serverAddress}&serverPort=25564`
-    : `lunarclient://play?serverAddress=${serverAddress}`;
+  
+  // Construct the appropriate protocol URL
+  let protocolUrl;
+  if (isBedrock) {
+    const port = isDev ? 19131 : 19132;
+    protocolUrl = `minecraft://connect?serverUrl=${serverAddress}&serverPort=${port}`;
+  } else {
+    protocolUrl = isDev
+      ? `lunarclient://play?serverAddress=${serverAddress}&serverPort=25564`
+      : `lunarclient://play?serverAddress=${serverAddress}`;
+  }
 
   // Return HTML that attempts to open Lunar Client and falls back to download page
   const html = `<!DOCTYPE html>
@@ -59,35 +68,40 @@ export async function onRequest(context) {
 <body>
     <div class="container">
         <div class="spinner" id="spinner"></div>
-        <p id="message">Opening Lunar Client...</p>
+        <p id="message">Opening ${isBedrock ? 'Minecraft' : 'Lunar Client'}...</p>
     </div>
 
     <script>
         (function() {
-            const lunarClientUrl = ${JSON.stringify(lunarClientUrl)};
+            const protocolUrl = ${JSON.stringify(protocolUrl)};
+            const isBedrock = ${isBedrock ? 'true' : 'false'};
             const spinner = document.getElementById('spinner');
             const message = document.getElementById('message');
             
             // Function to show success message
             function showSuccess() {
                 spinner.style.display = 'none';
-                message.textContent = 'Opened in Lunar Client, you can close this tab now';
+                const clientName = isBedrock ? 'Minecraft' : 'Lunar Client';
+                message.textContent = 'Opened in ' + clientName + ', you can close this tab now';
             }
             
-            // Try to open Lunar Client
-            window.location.href = lunarClientUrl;
+            // Try to open the client
+            window.location.href = protocolUrl;
 
-            // Fallback: If Lunar Client doesn't open, redirect to download page after a delay
+            // Fallback: If the client doesn't open, redirect to download page after a delay
             // Give users plenty of time to click "Open" in the browser prompt
             let fallbackTriggered = false;
+            const fallbackUrl = isBedrock 
+                ? 'https://www.minecraft.net/download'
+                : 'https://www.lunarclient.com/download';
             let fallbackTimeout = setTimeout(() => {
                 if (!fallbackTriggered) {
                     fallbackTriggered = true;
-                    window.location.href = 'https://www.lunarclient.com/download';
+                    window.location.href = fallbackUrl;
                 }
             }, 20000); // 20 seconds to allow time for user interaction
 
-            // If the page becomes hidden, Lunar Client likely opened successfully
+            // If the page becomes hidden, the client likely opened successfully
             // Cancel the fallback timeout and show success message
             document.addEventListener('visibilitychange', () => {
                 if (document.hidden && !fallbackTriggered) {
