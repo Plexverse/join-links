@@ -5,13 +5,19 @@ export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
   const serverId = url.searchParams.get('id');
+  const isDev = url.searchParams.has('dev');
 
   if (!serverId) {
     return Response.redirect('https://www.lunarclient.com/download', 302);
   }
 
-  const serverAddress = `server-${serverId}.plexverse.net`;
-  const lunarClientUrl = `lunarclient://play?serverAddress=${serverAddress}`;
+  // Use dev server format if dev parameter is present
+  const serverAddress = isDev 
+    ? `${serverId}.dev.mineplex.com`
+    : `server-${serverId}.plexverse.net`;
+  const lunarClientUrl = isDev
+    ? `lunarclient://play?serverAddress=${serverAddress}&serverPort=25564`
+    : `lunarclient://play?serverAddress=${serverAddress}`;
 
   // Return HTML that attempts to open Lunar Client and falls back to download page
   const html = `<!DOCTYPE html>

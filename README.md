@@ -19,9 +19,15 @@ When a user visits `join.plexverse.net/server?id=12345`, the service:
 
 ## Usage
 
+### Production Servers
 Visit: `https://join.plexverse.net/server?id=12345`
 
 This will attempt to open Lunar Client with the server address: `server-12345.plexverse.net`
+
+### Dev Servers
+Visit: `https://join.plexverse.net/server?id=3k7d2ia1&dev`
+
+This will attempt to open Lunar Client with the dev server address: `3k7d2ia1.dev.mineplex.com:25564`
 
 ## Files
 

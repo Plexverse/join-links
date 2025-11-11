@@ -45,6 +45,7 @@
             // Get the server ID from URL parameters
             const urlParams = new URLSearchParams(window.location.search);
             const serverId = urlParams.get('id');
+            const isDev = urlParams.has('dev');
 
             if (!serverId) {
                 // No ID provided, redirect to download page
@@ -62,8 +63,13 @@
             }
 
             // Construct the Lunar Client protocol URL
-            const serverAddress = `server-${serverId}.plexverse.net`;
-            const lunarClientUrl = `lunarclient://play?serverAddress=${serverAddress}`;
+            // Use dev server format if dev parameter is present
+            const serverAddress = isDev 
+                ? `${serverId}.dev.mineplex.com`
+                : `server-${serverId}.plexverse.net`;
+            const lunarClientUrl = isDev
+                ? `lunarclient://play?serverAddress=${serverAddress}&serverPort=25564`
+                : `lunarclient://play?serverAddress=${serverAddress}`;
 
             // Try to open Lunar Client
             window.location.href = lunarClientUrl;
