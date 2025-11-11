@@ -1,6 +1,7 @@
 
 <img width="4096" height="843" alt="Github Repository Header" src="https://github.com/user-attachments/assets/bd603ca6-d4a4-48d3-8d43-6986dd9b92cd" />
-
+</br>
+</br>
 A Cloudflare Pages service that redirects users to Lunar Client or Minecraft Bedrock with server addresses.
 
 ## How it works
